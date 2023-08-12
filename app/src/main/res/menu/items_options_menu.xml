@@ -1,0 +1,41 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.app.daily.ui.activities.MainActivity">
+    <item
+        android:title="@string/clean_list"
+        android:icon="@drawable/ic_delete_items"
+        app:showAsAction="ifRoom"
+        android:id="@+id/clean_list">
+    </item>
+    <item
+        android:title="@string/share_list"
+        android:icon="@drawable/ic_share"
+        app:showAsAction="ifRoom"
+        android:id="@+id/list_share">
+    </item>
+    <item
+        android:title="@string/options"
+        android:icon="@drawable/ic_expand"
+        app:showAsAction="ifRoom"
+        android:id="@+id/items_options">
+        <menu>
+            <item
+                android:id="@+id/check_all"
+                android:title="@string/check_all"
+                app:showAsAction="never" />
+            <item
+                android:id="@+id/uncheck_all"
+                android:title="@string/uncheck_all"
+                app:showAsAction="never" />
+            <item
+                android:id="@+id/delete_checked"
+                android:title="@string/delete_checked"
+                app:showAsAction="never" />
+            <item
+                android:id="@+id/sort_all"
+                android:title="@string/sort_alphabetically"
+                app:showAsAction="never" />
+        </menu>
+    </item>
+</menu>
