@@ -149,11 +149,12 @@ class ListsFragment : Fragment() {
                 putString("id", list.id)
             }
             val itemsFragment = ItemsFragment()
-            if(!itemsFragment.isAdded) {
+            //if(!viewModel.dialogShown) {
                 itemsFragment.apply {
                     arguments = bundle
                 } .show(requireActivity().supportFragmentManager, ItemsFragment.TAG)
-            }
+                viewModel.dialogShown=true
+            //}
         }
 
         binding.rvLists.addOnScrollListener(object : RecyclerView.OnScrollListener() {

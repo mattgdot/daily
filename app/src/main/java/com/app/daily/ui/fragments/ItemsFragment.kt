@@ -1,27 +1,38 @@
 package com.app.daily.ui.fragments
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
+import android.widget.TextView.OnEditorActionListener
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.RecyclerView
 import com.app.daily.R
 import com.app.daily.databinding.FragmentItemsBinding
 import com.app.daily.domain.models.ItemModel
 import com.app.daily.ui.adapters.ItemsAdapter
-import com.app.daily.ui.dialogs.DeleteItemsDialog
-import com.app.daily.ui.dialogs.DeleteListDialog
+import com.app.daily.ui.dialogs.*
 import com.app.daily.ui.viewmodels.ListsFragmentViewModel
 import com.app.daily.utils.ItemMoveCallback
+import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.util.*
+
 
 @AndroidEntryPoint
 class ItemsFragment : DialogFragment() {
@@ -31,9 +42,51 @@ class ItemsFragment : DialogFragment() {
 
     private val adapter by lazy { ItemsAdapter(arrayListOf()) }
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setStyle(STYLE_NO_TITLE, R.style.Theme_App_FullScreenDialog)
+    }
+
+    private fun showMenu(v: View, menuRes: Int, item: ItemModel, listId:String) {
+        val popup = PopupMenu(requireContext(), v)
+        popup.menuInflater.inflate(menuRes, popup.menu)
+
+        popup.setOnMenuItemClickListener { menuItem: MenuItem ->
+            when (menuItem.itemId) {
+                R.id.edit -> {
+
+                    val bundle = Bundle().apply {
+                        putString("listId", listId)
+                        putString("name", item.name)
+                        putString("itemId", item.id)
+                    }
+
+                    EditItemDialog().apply {
+                        arguments = bundle
+                    }.also {
+                        it.show(requireActivity().supportFragmentManager, EditItemDialog.TAG)
+                    }
+                }
+                R.id.delete -> {
+                    val bundle = Bundle().apply {
+                        putString("listId", listId)
+                        putString("itemId", item.id)
+                    }
+
+                    DeleteItemDialog().apply {
+                        arguments = bundle
+                    }.also {
+                        it.show(
+                            requireActivity().supportFragmentManager, DeleteItemDialog.TAG
+                        )
+                    }
+                    popup.dismiss()
+                }
+            }
+            true
+        }
+        popup.show()
     }
 
     override fun onCreateView(
@@ -48,8 +101,11 @@ class ItemsFragment : DialogFragment() {
         val name = arguments?.getString("name")
 
         binding.toolbar.setNavigationOnClickListener {
-            dialog?.dismiss()
+            viewModel.dialogShown=false
+            dismiss()
         }
+
+        val speech = SpeechRecognizer.createSpeechRecognizer(requireContext())
 
         binding.toolbar.setOnMenuItemClickListener { menuItem ->
             when(menuItem.itemId){
@@ -58,11 +114,11 @@ class ItemsFragment : DialogFragment() {
                         putString("id", id)
                     }
 
-                    DeleteItemsDialog().apply {
+                    DeleteAllItemsDialog().apply {
                         arguments = bundle
                     }.also {
                         it.show(
-                            requireActivity().supportFragmentManager, DeleteItemsDialog.TAG
+                            requireActivity().supportFragmentManager, DeleteAllItemsDialog.TAG
                         )
                     }
                 }
@@ -139,17 +195,26 @@ class ItemsFragment : DialogFragment() {
                     adapter.submitList(sortedItems)
 
                     binding.tvNoItems.visibility = View.GONE
-                    //if (previousItemCount < items.size) {
+                    if (previousItemCount < items.size) {
                         binding.rvListItems.post {
                             binding.rvListItems.scrollToPosition(0)
                         }
-                    //}
+                    }
                 }
             } ?: run {
                 adapter.submitList(emptyList())
                 binding.tvNoItems.visibility = View.VISIBLE
             }
         }
+
+        adapter.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
+            // Prevent the list from scrolling when an item position change
+            override fun onItemRangeMoved(fromPosition: Int, toPosition: Int, itemCount: Int) {
+                lifecycleScope.launch {
+                    binding.rvListItems.scrollToPosition(fromPosition)
+                }
+            }
+        })
 
         adapter.onItemChecked = { item, isChecked ->
             val itemIndex = adapter.list.indexOf(item)
@@ -171,6 +236,10 @@ class ItemsFragment : DialogFragment() {
             }
         }
 
+        adapter.onOptionsPressed = { list, view, menu ->
+            showMenu(view, menu, list, id)
+        }
+
         binding.btnAdd.setIconResource(R.drawable.ic_mic)
 
         binding.etItem.doOnTextChanged { text, start, before, count ->
@@ -179,6 +248,34 @@ class ItemsFragment : DialogFragment() {
                     binding.btnAdd.setIconResource(R.drawable.ic_add)
                 } else {
                     binding.btnAdd.setIconResource(R.drawable.ic_mic)
+                }
+            }
+        }
+
+        binding.etItem.setOnEditorActionListener(OnEditorActionListener { v, actionId, event ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                binding.btnAdd.performClick()
+                return@OnEditorActionListener true
+            }
+            false
+        })
+
+
+        val resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val data: Intent? = result.data
+                if(data!=null){
+                    val text = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+                    if(text != null){
+                        viewModel.addItemToList(
+                            ItemModel(
+                                UUID.randomUUID().toString(),
+                                text[0],
+                                false
+                            ),
+                            id
+                        )
+                    }
                 }
             }
         }
@@ -195,6 +292,14 @@ class ItemsFragment : DialogFragment() {
                     ),
                     id
                 )
+            } else{
+                val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+
+                try {
+                    resultLauncher.launch(intent)
+                } catch (e:Exception){
+                    Snackbar.make(binding.root,"Can't start Google speech recognition", Snackbar.LENGTH_SHORT).show()
+                }
             }
         }
 

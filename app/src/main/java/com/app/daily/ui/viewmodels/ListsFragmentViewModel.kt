@@ -29,6 +29,8 @@ class ListsFragmentViewModel @Inject constructor(
 
     var userID: String = sharedPreferencesRepositoryImpl.getUserId().toString()
 
+    var dialogShown = false
+
     fun setUserLists(lists: List<String>): MutableLiveData<MutableList<ListModel>> {
         return listsRepositoryImpl.listenToListChanges(lists)
     }

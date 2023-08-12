@@ -11,6 +11,7 @@ import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.DialogFragment
 import com.app.daily.R
 import com.app.daily.data.repository.ListsRepositoryImpl
+import com.app.daily.domain.models.ItemModel
 import com.app.daily.domain.models.ListModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputLayout
@@ -34,7 +35,8 @@ class EditItemDialog : DialogFragment() {
         return activity?.let {
 
             var name = arguments?.getString("name")
-            val id = arguments?.getString("id")
+            val listId = arguments?.getString("listId")
+            val itemId = arguments?.getString("itemId")
 
             val addView: View = LayoutInflater.from(requireContext())
                 .inflate(R.layout.dialog_add_list, view as ViewGroup?, false)
@@ -49,7 +51,7 @@ class EditItemDialog : DialogFragment() {
                 name = editable.toString()
             }
 
-            val dialog = MaterialAlertDialogBuilder(it).setView(addView).setTitle("Edit List")
+            val dialog = MaterialAlertDialogBuilder(it).setView(addView).setTitle("Edit Item")
                 .setCancelable(false).setPositiveButton("Done", null)
                 .setNegativeButton("Cancel") { _, _ ->
                     dialog?.dismiss()
@@ -67,11 +69,22 @@ class EditItemDialog : DialogFragment() {
                 }
                 if (inputName.error == null) {
                     serviceScope.launch {
-                        val list = listsRepositoryImpl.getList(id!!)
+                        val list = listsRepositoryImpl.getList(listId!!)
                         if (list != null) {
+                            val updatedContent = list.content.map { item ->
+                                if(item.id == itemId) {
+                                    ItemModel(
+                                        item.id,
+                                        name!!,
+                                        item.checked
+                                    )
+                                } else{
+                                    item
+                                }
+                            }
                             listsRepositoryImpl.updateList(
                                 ListModel(
-                                    list.id, name!!, list.timestamp, list.priority, list.content
+                                    list.id, list.name, list.timestamp, list.priority, updatedContent
                                 )
                             )
                         }
@@ -88,6 +101,6 @@ class EditItemDialog : DialogFragment() {
     }
 
     companion object {
-        const val TAG = "EditListDialog"
+        const val TAG = "EditItemDialog"
     }
 }

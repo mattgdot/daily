@@ -3,12 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?android:attr/colorBackground">
+    android:background="?android:attr/colorBackground"
+    android:paddingEnd="5dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
         android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -24,7 +24,6 @@
             android:clickable="true"
             android:focusable="true"
             android:longClickable="true"
-            android:padding="10dp"
             android:paddingStart="16dp"
             android:text="Item"
             android:textAlignment="gravity"
@@ -40,7 +39,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_weight="0.2"
+            android:layout_weight="0.16"
             android:foregroundGravity="center"
             android:gravity="center"
             android:padding="10dp"
