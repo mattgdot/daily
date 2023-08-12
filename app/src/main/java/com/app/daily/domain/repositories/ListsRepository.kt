@@ -10,6 +10,7 @@ interface ListsRepository {
     suspend fun addList(name: String, priority:Int, content: List<ItemModel>): String
 
     fun listenToListChanges(listIds: List<String>):MutableLiveData<MutableList<ListModel>>
+    fun listenToItemsChanges(listId: String):MutableLiveData<ListModel>
 
     suspend fun updateList(list:ListModel)
 

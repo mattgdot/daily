@@ -67,7 +67,6 @@ class EditListDialog : DialogFragment() {
                 }
                 if (inputName.error == null) {
                     serviceScope.launch {
-
                         val list = listsRepositoryImpl.getList(id!!)
                         if (list != null) {
                             listsRepositoryImpl.updateList(

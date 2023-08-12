@@ -44,4 +44,9 @@
 
     </style>
 
+    <style name="Theme.App.FullScreenDialog" parent="AppTheme">
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowFullscreen">false</item>
+    </style>
+
 </resources>

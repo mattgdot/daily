@@ -3,7 +3,7 @@ package com.app.daily.utils
 import androidx.recyclerview.widget.DiffUtil
 import com.app.daily.domain.models.ListModel
 
-class DiffCallback(
+class ListDiffCallback(
     private val oldList: List<ListModel>,
     var newList: List<ListModel>
 ) : DiffUtil.Callback() {

@@ -19,6 +19,7 @@ class ListsRepositoryImpl @Inject constructor(
     private val listsRef: CollectionReference
 ) : ListsRepository {
     private var currentListener: ListenerRegistration? = null
+    private var currentItemsListener: ListenerRegistration? = null
 
     override suspend fun getList(listId: String): ListModel? {
         return try {
@@ -67,6 +68,29 @@ class ListsRepositoryImpl @Inject constructor(
                     val orderById = listIds.withIndex().associate { (index, it) -> it to index }
                     val sortedPeople = lists.sortedBy { orderById[it.id] }
                     listsLiveData.postValue(sortedPeople.toMutableList())
+                } else{
+                    listsLiveData.value=null
+                }
+            })
+
+
+        return listsLiveData
+    }
+
+    override fun listenToItemsChanges(listId: String): MutableLiveData<ListModel> {
+        val listsLiveData: MutableLiveData<ListModel> = MutableLiveData()
+
+        currentItemsListener?.remove()
+
+        currentItemsListener = listsRef.document(listId)
+            .addSnapshotListener(EventListener { value, e ->
+                if (e != null) {
+                    listsLiveData.value=null
+                    return@EventListener
+                }
+
+                if(value!=null){
+                    listsLiveData.postValue(value.toObject(ListModel::class.java))
                 } else{
                     listsLiveData.value=null
                 }

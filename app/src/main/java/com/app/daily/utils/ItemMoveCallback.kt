@@ -1,12 +1,14 @@
-package com.app.daily.ui.adapters
+package com.app.daily.utils
 
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
+import com.app.daily.ui.adapters.ItemsAdapter
+import com.app.daily.ui.adapters.ListsAdapter
 
 
 class ItemMoveCallback(private val mAdapter: ItemTouchHelperContract) : ItemTouchHelper.Callback() {
     override fun isLongPressDragEnabled(): Boolean {
-        return false
+        return true
     }
 
     override fun isItemViewSwipeEnabled(): Boolean {
@@ -30,31 +32,15 @@ class ItemMoveCallback(private val mAdapter: ItemTouchHelperContract) : ItemTouc
         return true
     }
 
-    override fun onSelectedChanged(
-        viewHolder: RecyclerView.ViewHolder?, actionState: Int
-    ) {
-        if (actionState != ItemTouchHelper.ACTION_STATE_IDLE) {
-            if (viewHolder is MyListsAdapter.ListsViewHolder) {
-                val myViewHolder: MyListsAdapter.ListsViewHolder = viewHolder
-                mAdapter.onRowSelected(myViewHolder)
-            }
-        }
-        super.onSelectedChanged(viewHolder, actionState)
-    }
-
     override fun clearView(
         recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder
     ) {
         super.clearView(recyclerView, viewHolder)
-        if (viewHolder is MyListsAdapter.ListsViewHolder) {
-            val myViewHolder: MyListsAdapter.ListsViewHolder = viewHolder
-            mAdapter.onRowClear(myViewHolder)
-        }
+        mAdapter.onRowClear()
     }
 
     interface ItemTouchHelperContract {
         fun onRowMoved(fromPosition: Int, toPosition: Int)
-        fun onRowSelected(myViewHolder: MyListsAdapter.ListsViewHolder)
-        fun onRowClear(myViewHolder: MyListsAdapter.ListsViewHolder)
+        fun onRowClear()
     }
 }

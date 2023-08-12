@@ -10,15 +10,16 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavOptions
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.app.daily.R
 import com.app.daily.databinding.FragmentListsBinding
 import com.app.daily.domain.models.ListModel
 import com.app.daily.domain.models.UserModel
-import com.app.daily.ui.adapters.ItemMoveCallback
-import com.app.daily.ui.adapters.MyListsAdapter
-import com.app.daily.ui.adapters.StartDragListener
+import com.app.daily.utils.ItemMoveCallback
+import com.app.daily.ui.adapters.ListsAdapter
 import com.app.daily.ui.dialogs.AddListDialog
 import com.app.daily.ui.dialogs.DeleteListDialog
 import com.app.daily.ui.dialogs.EditListDialog
@@ -28,16 +29,14 @@ import kotlinx.coroutines.launch
 
 
 @AndroidEntryPoint
-class ListsFragment : Fragment(), StartDragListener {
+class ListsFragment : Fragment() {
 
     private var _binding: FragmentListsBinding? = null
     private val binding get() = _binding!!
 
-    private lateinit var touchHelper: ItemTouchHelper
-
     private val adapter by lazy {
-        MyListsAdapter(
-            arrayListOf(), this
+        ListsAdapter(
+            arrayListOf()
         )
     }
 
@@ -89,7 +88,7 @@ class ListsFragment : Fragment(), StartDragListener {
 
         binding.rvLists.adapter = adapter
 
-        touchHelper = ItemTouchHelper(
+        ItemTouchHelper(
             ItemMoveCallback(adapter)
         ).also {
             it.attachToRecyclerView(binding.rvLists)
@@ -132,35 +131,48 @@ class ListsFragment : Fragment(), StartDragListener {
                     }
                 }
             }
-
-            adapter.onOptionsPressed = { list, view, menu ->
-                showMenu(view, menu, list)
-            }
-
-            adapter.onOrderChanged = {
-                lifecycleScope.launch {
-                    viewModel.updateUserLists(adapter.list.toMutableList())
-                }
-            }
-
-            binding.rvLists.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                    super.onScrolled(recyclerView, dx, dy)
-
-                    if (dy > 10 && binding.fabAddList.isShown) {
-                        binding.fabAddList.hide()
-                    }
-
-                    if (dy < -10 && !binding.fabAddList.isShown) {
-                        binding.fabAddList.show()
-                    }
-
-                    if (!recyclerView.canScrollVertically(-1)) {
-                        binding.fabAddList.show()
-                    }
-                }
-            })
         }
+
+        adapter.onOptionsPressed = { list, view, menu ->
+            showMenu(view, menu, list)
+        }
+
+        adapter.onOrderChanged = {
+            lifecycleScope.launch {
+                viewModel.updateUserLists(adapter.list.toMutableList())
+            }
+        }
+
+        adapter.onItemClicked = { list ->
+            val bundle = Bundle().apply {
+                putString("name", list.name)
+                putString("id", list.id)
+            }
+            val itemsFragment = ItemsFragment()
+            if(!itemsFragment.isAdded) {
+                itemsFragment.apply {
+                    arguments = bundle
+                } .show(requireActivity().supportFragmentManager, ItemsFragment.TAG)
+            }
+        }
+
+        binding.rvLists.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+
+                if (dy > 10 && binding.fabAddList.isShown) {
+                    binding.fabAddList.hide()
+                }
+
+                if (dy < -10 && !binding.fabAddList.isShown) {
+                    binding.fabAddList.show()
+                }
+
+                if (!recyclerView.canScrollVertically(-1)) {
+                    binding.fabAddList.show()
+                }
+            }
+        })
 
         return binding.root
 
@@ -169,9 +181,5 @@ class ListsFragment : Fragment(), StartDragListener {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-    }
-
-    override fun requestDrag(viewHolder: RecyclerView.ViewHolder) {
-        touchHelper.startDrag(viewHolder)
     }
 }

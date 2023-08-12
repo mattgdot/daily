@@ -1,9 +1,11 @@
 package com.app.daily.ui.activities
 
 import android.os.Bundle
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavDestination
 import androidx.navigation.fragment.NavHostFragment
@@ -13,6 +15,8 @@ import com.app.daily.data.repository.SharedPreferencesRepositoryImpl
 import com.app.daily.data.repository.UsersRepositoryImpl
 import com.app.daily.databinding.ActivityMainBinding
 import com.google.android.material.color.DynamicColors
+import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.util.*
@@ -37,6 +41,8 @@ class MainActivity : AppCompatActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         super.onCreate(savedInstanceState)
+
+        FirebaseAuth.getInstance().signInAnonymously()
 
         if (sharedPreferencesRepositoryImpl.isFirstLaunch()) {
             lifecycleScope.launch {
