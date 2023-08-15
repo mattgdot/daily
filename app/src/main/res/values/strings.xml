@@ -15,4 +15,8 @@
     <string name="share_list">Share List</string>
     <string name="clean_list">Clean List</string>
     <string name="delete_checked">Delete Checked</string>
+    <string name="instagram">Instagram</string>
+    <string name="faq">FAQ</string>
+    <string name="privacy_policy">Privacy Policy</string>
+    <string name="contact_us">Contact Us</string>
 </resources>

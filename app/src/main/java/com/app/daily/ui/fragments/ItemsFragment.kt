@@ -28,6 +28,12 @@ import com.app.daily.ui.adapters.ItemsAdapter
 import com.app.daily.ui.dialogs.*
 import com.app.daily.ui.viewmodels.ListsFragmentViewModel
 import com.app.daily.utils.ItemMoveCallback
+import com.google.android.gms.ads.AdError
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.FullScreenContentCallback
+import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.interstitial.InterstitialAd
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -105,8 +111,6 @@ class ItemsFragment : DialogFragment() {
             dismiss()
         }
 
-        val speech = SpeechRecognizer.createSpeechRecognizer(requireContext())
-
         binding.toolbar.setOnMenuItemClickListener { menuItem ->
             when(menuItem.itemId){
                 R.id.clean_list -> {
@@ -123,7 +127,14 @@ class ItemsFragment : DialogFragment() {
                     }
                 }
                 R.id.list_share -> {
-                    Log.d("mkv","share")
+                    val sendIntent: Intent = Intent().apply {
+                        action = Intent.ACTION_SEND
+                        putExtra(Intent.EXTRA_TEXT, "https://dailytodoapp.github.io/list/${id}")
+                        type = "text/plain"
+                    }
+
+                    val shareIntent = Intent.createChooser(sendIntent, null)
+                    startActivity(shareIntent)
                 }
                 R.id.check_all -> {
                     lifecycleScope.launch {

@@ -1,6 +1,7 @@
 package com.app.daily.ui.fragments
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
@@ -24,8 +25,12 @@ import com.app.daily.ui.dialogs.AddListDialog
 import com.app.daily.ui.dialogs.DeleteListDialog
 import com.app.daily.ui.dialogs.EditListDialog
 import com.app.daily.ui.viewmodels.ListsFragmentViewModel
+import com.google.android.gms.ads.*
+import com.google.android.gms.ads.interstitial.InterstitialAd
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import java.util.*
 
 
 @AndroidEntryPoint
@@ -34,11 +39,13 @@ class ListsFragment : Fragment() {
     private var _binding: FragmentListsBinding? = null
     private val binding get() = _binding!!
 
+
     private val adapter by lazy {
         ListsAdapter(
             arrayListOf()
         )
     }
+
 
     private fun showMenu(v: View, menuRes: Int, list: ListModel) {
         val popup = PopupMenu(requireContext(), v)
@@ -85,6 +92,11 @@ class ListsFragment : Fragment() {
         _binding = FragmentListsBinding.inflate(inflater, container, false)
 
         val viewModel = ViewModelProvider(this)[ListsFragmentViewModel::class.java]
+
+        val testDeviceIds = Arrays.asList("5277A37BF9D49F1D2C207EC4FE917258")
+        val configuration = RequestConfiguration.Builder().setTestDeviceIds(testDeviceIds).build()
+        MobileAds.setRequestConfiguration(configuration)
+
 
         binding.rvLists.adapter = adapter
 
@@ -144,17 +156,21 @@ class ListsFragment : Fragment() {
         }
 
         adapter.onItemClicked = { list ->
+
+
             val bundle = Bundle().apply {
                 putString("name", list.name)
                 putString("id", list.id)
             }
             val itemsFragment = ItemsFragment()
-            //if(!viewModel.dialogShown) {
-                itemsFragment.apply {
-                    arguments = bundle
-                } .show(requireActivity().supportFragmentManager, ItemsFragment.TAG)
-                viewModel.dialogShown=true
-            //}
+            val prevFragment = requireActivity().supportFragmentManager.findFragmentByTag(ItemsFragment.TAG)
+            if (prevFragment is ItemsFragment) {
+                prevFragment.dismiss()
+            }
+            itemsFragment.apply {
+                arguments = bundle
+            } .show(requireActivity().supportFragmentManager, ItemsFragment.TAG)
+
         }
 
         binding.rvLists.addOnScrollListener(object : RecyclerView.OnScrollListener() {
