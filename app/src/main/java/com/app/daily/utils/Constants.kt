@@ -6,6 +6,8 @@ object Constants {
     const val SHARED_PREFERENCES_NAME = "dailysp"
     const val FIRST_LAUNCH = "first_launch"
     const val USER_ID = "user_id"
+    const val THEME_MODE = "theme_mode"
+    const val VOICE_LOCALE = "voice_locale"
 
 
 }

@@ -5,7 +5,9 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
@@ -19,6 +21,7 @@ import com.app.daily.data.repository.UsersRepositoryImpl
 import com.app.daily.databinding.ActivityMainBinding
 import com.app.daily.ui.fragments.ItemsFragment
 import com.app.daily.ui.fragments.SettingsFragment
+import com.app.daily.ui.viewmodels.MainViewModel
 import com.google.android.gms.ads.*
 import com.google.android.gms.ads.initialization.InitializationStatus
 import com.google.android.gms.ads.initialization.OnInitializationCompleteListener
@@ -45,7 +48,7 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var listsRepositoryImpl: ListsRepositoryImpl
 
-    private var mInterstitialAd: InterstitialAd? = null
+    private val viewModel: MainViewModel by viewModels()
 
     private fun handleDeepLink(appLinkData: Uri) {
         val listId = appLinkData.toString().substringAfterLast("/list/")
@@ -86,75 +89,25 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
 
-        DynamicColors.applyToActivityIfAvailable(this)
+        //DynamicColors.applyToActivityIfAvailable(this)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         super.onCreate(savedInstanceState)
 
-        MobileAds.initialize(this@MainActivity) {
-            val adRequest = AdRequest.Builder().build()
-
-            InterstitialAd.load(
-                this@MainActivity,
-                "ca-app-pub-3940256099942544/5224354917",
-                adRequest,
-                object : InterstitialAdLoadCallback() {
-                    override fun onAdFailedToLoad(adError: LoadAdError) {
-                        Log.d("mkv", adError.toString())
-                        mInterstitialAd = null
-                    }
-
-                    override fun onAdLoaded(interstitialAd: InterstitialAd) {
-                        Log.d("mkv", "Ad was loaded.")
-                        mInterstitialAd = interstitialAd
-                    }
-                })
-
-            mInterstitialAd?.fullScreenContentCallback = object : FullScreenContentCallback() {
-                override fun onAdClicked() {
-                    // Called when a click is recorded for an ad.
-                    Log.d("mkv", "Ad was clicked.")
+        viewModel.themeMode.observe(this){
+            when(it){
+                0 -> {
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
                 }
-
-                override fun onAdDismissedFullScreenContent() {
-                    // Called when ad is dismissed.
-                    Log.d("mkv", "Ad dismissed fullscreen content.")
-                    mInterstitialAd = null
+                1 -> {
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
                 }
-
-                override fun onAdFailedToShowFullScreenContent(adError: AdError) {
-                    // Called when ad fails to show.
-                    Log.e("mkv", "Ad failed to show fullscreen content.")
-                    mInterstitialAd = null
+                2 -> {
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
                 }
-
-                override fun onAdImpression() {
-                    // Called when an impression is recorded for an ad.
-                    Log.d("mkv", "Ad recorded an impression.")
-                }
-
-                override fun onAdShowedFullScreenContent() {
-                    // Called when ad is shown.
-                    Log.d("mkv", "Ad showed fullscreen content.")
-                }
-            }
-
-            if (mInterstitialAd != null) {
-                mInterstitialAd?.show(this@MainActivity)
-            } else {
-                Log.d("TAG", "The interstitial ad wasn't ready yet.")
             }
         }
-
-        //RequestConfiguration.Builder().setTestDeviceIds(listOf("D878F5518928DC2C6517FDD0F6DFEFA5"))
-
-//        val configuration = RequestConfiguration.Builder()
-////            .setTestDeviceIds(Arrays.asList("5277A37BF9D49F1D2C207EC4FE917258"))
-////            .build()
-////        MobileAds.setRequestConfiguration(configuration)
-
-
 
         if (sharedPreferencesRepositoryImpl.isFirstLaunch()) {
             lifecycleScope.launch {

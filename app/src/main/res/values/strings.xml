@@ -19,4 +19,7 @@
     <string name="faq">FAQ</string>
     <string name="privacy_policy">Privacy Policy</string>
     <string name="contact_us">Contact Us</string>
+    <string name="title_update">First release!</string>
+    <string name="message_update">Daily has been released - cool updates are on their way!</string>
+    <string name="btn_ok">OK</string>
 </resources>

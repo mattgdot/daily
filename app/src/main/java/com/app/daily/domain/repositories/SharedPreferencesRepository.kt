@@ -8,4 +8,11 @@ interface SharedPreferencesRepository {
     fun setUserId(userId:String)
 
     fun getUserId():String?
+
+    fun setThemeMode(themeMode:Int)
+
+    fun getThemeMode():Int
+
+    fun setVoiceLocale(locale:String)
+    fun getVoiceLocale():String
 }

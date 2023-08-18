@@ -62,4 +62,6 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.6.1"
 
     implementation 'com.google.android.gms:play-services-ads:22.2.0'
+
+    implementation "net.nicbell.material-lists:listitem:0.0.6"
 }

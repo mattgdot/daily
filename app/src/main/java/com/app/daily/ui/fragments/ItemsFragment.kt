@@ -17,6 +17,7 @@ import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -27,6 +28,7 @@ import com.app.daily.domain.models.ItemModel
 import com.app.daily.ui.adapters.ItemsAdapter
 import com.app.daily.ui.dialogs.*
 import com.app.daily.ui.viewmodels.ListsFragmentViewModel
+import com.app.daily.ui.viewmodels.MainViewModel
 import com.app.daily.utils.ItemMoveCallback
 import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdRequest
@@ -47,6 +49,8 @@ class ItemsFragment : DialogFragment() {
     private val binding get() = _binding!!
 
     private val adapter by lazy { ItemsAdapter(arrayListOf()) }
+
+    private val mainViewModel: MainViewModel by activityViewModels()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -305,7 +309,11 @@ class ItemsFragment : DialogFragment() {
                 )
             } else{
                 val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
-
+//                intent.putExtra(
+//                    RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+//                    RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+//                )
+                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, mainViewModel.voiceLocale)
                 try {
                     resultLauncher.launch(intent)
                 } catch (e:Exception){
